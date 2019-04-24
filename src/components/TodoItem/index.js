@@ -11,21 +11,26 @@ class TodoItem extends React.Component {
     }
 
     handleChange = (e) => {
-        const value = e.target.type === 'checkbox'? e.target.checked: e.target.value
-        this.setState({
-            [e.target.name]: value,
-        })
+        const {editItem,index} = this.props;
+        const value = e.target.type === 'checkbox'? e.target.checked: e.target.value;
+        const item = {
+            ...this.props.item,
+            [e.target.name]: value
+        }
+        editItem(index, item)
+    }
+
+    changeText = (e) => {
+
     }
 
     handleDoubleClick = () => {
-        this.setState({
-            ...this.state,
+        this.props.editItem(this.props.index, {
+            ...this.props.item,
             isEdit: true
-        }, () => {
+        }).then(() => {
             this.refs.editor.focus();
-            this.refs.editor.value = this.state.text;
         })
-
     }
 
     handleBlur = ()=> {
@@ -33,22 +38,29 @@ class TodoItem extends React.Component {
             ...this.state,
             isEdit: false
         })
+        this.props.editItem(this.props.index, {
+            ...this.props.item,
+            text: this.refs.editor.value,
+            isEdit: false
+        })
     }
 
     render() {
         const _this = this;
         const isShowEdit = () => {
-            if(!_this.state.isEdit){
+            const {item, index} = this.props;
+            if(!item.isEdit){
                 return  (
                     <div className="todo-item-body">
-                        132
-                        <input type="checkbox" name="isDone" value={_this.state.isDone} onChange={_this.handleChange}  />
+                        <input type="checkbox" name="isDone" value={item.isDone} onChange={_this.handleChange} checked={item.isDone} />
                         <span className={
-                            this.state.isDone?'isDone': ''
+                            item.isDone?'isDone': ''
                         }
                               onDoubleClick={this.handleDoubleClick}
-                        >{this.state.text}</span>
-                        <button>删除该todo</button>
+                        >{item.text}</span>
+                        <button onClick={() => {
+                            this.props.removeOne(this.props.index)
+                        }}>删除该todo</button>
                     </div>
                 )
             } else {
@@ -56,6 +68,7 @@ class TodoItem extends React.Component {
                     <div className="todo-item-editor">
                         <input type="text"
                                onBlur={this.handleBlur}
+                               value={this.props.item.text}
                                ref="editor" name="text" onChange={this.handleChange} />
                     </div>
                 )
